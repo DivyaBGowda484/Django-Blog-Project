@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog App</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li.success { color: green; }
+        li.error { color: red; }
+        nav a { margin-right: 10px; }
+    </style>
+</head>
+
+<body>
+    <h1>Blog App</h1>
+
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <nav>
+        {% if user.is_authenticated %}
+            Logged in as <strong>{{ user.username }}</strong> |
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </nav>
+
+    <hr>
+
+    {% block content %}{% endblock content %}
+</body>
+</html>
