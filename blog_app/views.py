@@ -4,16 +4,25 @@ from .models import Post, Comment
 from .forms import PostForm, CommentForm
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout as django_logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 
-# Create your views here.
 def index(request):
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'blog_app/index.html', {'posts': posts})
+    query = request.GET.get('q')
+    if query:
+        post_list = Post.objects.filter(title__icontains=query)
+    else:
+        post_list = Post.objects.all().order_by('-created_at')
 
-def register(request):
+    paginator = Paginator(post_list, 5)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
+    return render(request, 'blog_app/index.html', {'posts': posts, 'query': query})
+
+def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -25,7 +34,7 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
-def login(request):
+def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -38,8 +47,8 @@ def login(request):
     return render(request, 'registration/login.html', {'form': form})
 
 
-def logout(request):
-    logout(request)
+def logout_view(request):
+    django_logout(request)
     messages.success(request, "Logout successful!")
     return redirect('login')
 
@@ -99,6 +108,15 @@ def post_detail(request, post_id):
             comment.author = request.user
             comment.save()
             messages.success(request, "Comment added successfully.")
+            post_author_email = post.author.email
+            if post_author_email:
+                send_mail(
+                    subject=f"New Comment on Your Post: {post.title}",
+                    message=f"{request.user.username} commented: {comment.content}",
+                    from_email=None,
+                    recipient_list=[post_author_email],
+                    fail_silently=True,
+                )
             return redirect('post_detail', post_id=post.id)
     else:
         form = CommentForm()
@@ -108,3 +126,15 @@ def post_detail(request, post_id):
         'comments': comments,
         'form': form
     })
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    if request.user != comment.author:
+        raise PermissionDenied
+
+    post_id = comment.post.id
+    comment.delete()
+    messages.success(request, "Comment deleted.")
+    return redirect('post_detail', post_id=post_id)
