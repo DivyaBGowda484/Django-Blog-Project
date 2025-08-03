@@ -108,15 +108,6 @@ def post_detail(request, post_id):
             comment.author = request.user
             comment.save()
             messages.success(request, "Comment added successfully.")
-            post_author_email = post.author.email
-            if post_author_email:
-                send_mail(
-                    subject=f"New Comment on Your Post: {post.title}",
-                    message=f"{request.user.username} commented: {comment.content}",
-                    from_email=None,
-                    recipient_list=[post_author_email],
-                    fail_silently=True,
-                )
             return redirect('post_detail', post_id=post.id)
     else:
         form = CommentForm()
