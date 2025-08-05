@@ -6,7 +6,7 @@ VibeBoard is a simple, elegant backend focused blogging platform built with Djan
 
 ## 🚀 Live Demo
 
-🌐 [Live on Render](https://vibeboard-3fmp.onrender.com/)
+🌐 [Live on Render](https://vibeboard-o3qg.onrender.com)
 
 ---
 
