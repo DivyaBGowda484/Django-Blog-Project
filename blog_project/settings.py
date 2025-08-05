@@ -79,8 +79,7 @@ WSGI_APPLICATION = 'blog_project.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
-        conn_max_age=600,
-        ssl_require=True
+        conn_max_age=600
     )
 }
 
@@ -144,10 +143,3 @@ STATIC_URL = '/static/'
 
 # WhiteNoise
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-
-# Render DB config
-DATABASES['default'] = dj_database_url.config(
-    default='sqlite:///db.sqlite3',
-    conn_max_age=600,
-    ssl_require=True
-)
